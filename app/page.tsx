@@ -702,7 +702,7 @@ export default function Home() {
             Ready to get started?
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-background/60">
-            Whether you&apos;re looking for your next role or hiring for your team, Jobly
+            Whether you&apos;re looking for your next role or hiring for your team, MyFuture
             makes it simple. Sign up free and start today.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -759,7 +759,7 @@ export default function Home() {
             <Link href="/pricing" className="transition-colors hover:text-foreground">Pricing</Link>
           </nav>
           <p className="text-xs text-muted-foreground/60">
-            &copy; {new Date().getFullYear()} Jobly
+            &copy; {new Date().getFullYear()} MyFuture.
           </p>
         </div>
       </footer>
