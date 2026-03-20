@@ -4,6 +4,7 @@ import "./globals.css";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
+import { LanguageProvider } from "@/components/i18n/language-context";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -17,10 +18,11 @@ const figtree = Figtree({
   display: "swap",
 });
 
+// Metadata หลัก — เปลี่ยนเป็น EdTech wording สำหรับ NSC
 export const metadata: Metadata = {
-  title: "Jobly — Find jobs you actually want",
+  title: "MyFuture — Reskill & Upskill Platform",
   description:
-    "A friendly job marketplace for candidates and companies. Search, apply, and hire with confidence.",
+    "A friendly learning platform for reskilling and upskilling. Explore, learn, and grow with confidence.",
   icons: {
     icon: "/convex.svg",
   },
@@ -56,7 +58,9 @@ export default function RootLayout({
             },
           }}
         >
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <ConvexClientProvider>
+            <LanguageProvider>{children}</LanguageProvider>
+          </ConvexClientProvider>
           <Toaster richColors closeButton position="bottom-right" />
         </ClerkProvider>
       </body>

@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { ArrowLeft, Send } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/components/i18n/language-context";
 
 type JobFormValues = {
   title: string;
@@ -40,6 +41,7 @@ type JobFormValues = {
 export default function NewCompanyJobPage() {
   const router = useRouter();
   const { orgId } = useAuth();
+  const { t } = useLanguage();
   const [statusText, setStatusText] = useState<string | null>(null);
 
   const companyContext = useQuery(
@@ -77,7 +79,7 @@ export default function NewCompanyJobPage() {
     return (
       <Card className="warm-shadow">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Select an organization to continue.
+          {t("companyNew.selectOrg")}
         </CardContent>
       </Card>
     );
@@ -93,7 +95,7 @@ export default function NewCompanyJobPage() {
     return (
       <Card className="warm-shadow">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Your organization has not synced yet. Wait a few seconds and refresh.
+          {t("companyNew.syncing")}
         </CardContent>
       </Card>
     );
@@ -105,9 +107,9 @@ export default function NewCompanyJobPage() {
     return (
       <Card className="warm-shadow">
         <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
-          <p className="font-medium">Read-only access</p>
+          <p className="font-medium">{t("companyNew.readOnly")}</p>
           <p className="text-sm text-muted-foreground">
-            Only admins and recruiters can create job listings.
+            {t("companyNew.readOnlyDesc")}
           </p>
         </CardContent>
       </Card>
@@ -122,16 +124,16 @@ export default function NewCompanyJobPage() {
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" />
-        Back to jobs
+        {t("companyNew.backToJobs")}
       </Link>
 
       {/* Page header */}
       <div>
         <h1 className="font-[family-name:var(--font-bricolage)] text-2xl font-bold tracking-tight">
-          Post a new job
+          {t("companyNew.title")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          This listing will be visible to candidates once published.
+          {t("companyNew.subtitle")}
         </p>
       </div>
 
@@ -139,14 +141,12 @@ export default function NewCompanyJobPage() {
         <Card className="border-amber-accent/30 bg-amber-accent/5">
           <CardContent className="py-4">
             <p className="text-sm font-medium text-amber-accent">
-              Active job limit reached ({usage?.activeJobCount ?? 0}/{jobLimit})
+              {t("companyNew.limitReached")} ({usage?.activeJobCount ?? 0}/{jobLimit})
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Upgrade your plan or close a job to open a new listing.
+              {t("companyNew.closeToContinue")}
             </p>
-            <Button asChild variant="outline" size="sm" className="mt-3">
-              <Link href="/company/billing">Manage billing</Link>
-            </Button>
+            {/* Billing/Pricing is hidden in this NSC demo. */}
           </CardContent>
         </Card>
       )}
@@ -186,7 +186,7 @@ export default function NewCompanyJobPage() {
               {/* Basics */}
               <div className="space-y-4">
                 <h3 className="font-[family-name:var(--font-bricolage)] text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Basics
+                  {t("companyNew.basics")}
                 </h3>
                 <FormField
                   control={form.control}
@@ -194,11 +194,11 @@ export default function NewCompanyJobPage() {
                   rules={{ required: "Title is required." }}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Job title</FormLabel>
+                      <FormLabel>{t("companyNew.programTitle")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Senior Product Designer" {...field} />
+                        <Input placeholder={t("companyNew.programTitlePlaceholder")} {...field} />
                       </FormControl>
-                      <FormDescription>The role candidates will see in search.</FormDescription>
+                      <FormDescription>{t("companyNew.programTitleDesc")}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -210,15 +210,15 @@ export default function NewCompanyJobPage() {
                   rules={{ required: "Description is required." }}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t("companyNew.description")}</FormLabel>
                       <FormControl>
                         <RichTextEditor
                           value={field.value}
                           onChange={field.onChange}
-                          placeholder="Role summary, requirements, responsibilities..."
+                          placeholder={t("companyNew.descPlaceholder")}
                         />
                       </FormControl>
-                      <FormDescription>Describe the role, team, and what you&apos;re looking for.</FormDescription>
+                      <FormDescription>{t("companyNew.descHint")}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -228,7 +228,7 @@ export default function NewCompanyJobPage() {
               {/* Details */}
               <div className="space-y-4 border-t border-border pt-6">
                 <h3 className="font-[family-name:var(--font-bricolage)] text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Details
+                  {t("companyNew.details")}
                 </h3>
                 <div className="grid gap-4 @xl:grid-cols-3">
                   <FormField
@@ -237,7 +237,7 @@ export default function NewCompanyJobPage() {
                     rules={{ required: "Location is required." }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Location</FormLabel>
+                        <FormLabel>{t("companyNew.location")}</FormLabel>
                         <FormControl>
                           <Input placeholder="San Francisco, CA" {...field} />
                         </FormControl>
@@ -250,17 +250,17 @@ export default function NewCompanyJobPage() {
                     name="employmentType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Employment type</FormLabel>
+                        <FormLabel>{t("companyNew.employmentType")}</FormLabel>
                         <FormControl>
                           <select
                             className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                             {...field}
                           >
-                            <option value="full_time">Full time</option>
-                            <option value="part_time">Part time</option>
-                            <option value="contract">Contract</option>
-                            <option value="internship">Internship</option>
-                            <option value="temporary">Temporary</option>
+                            <option value="full_time">{t("companyNew.fullTime")}</option>
+                            <option value="part_time">{t("companyNew.partTime")}</option>
+                            <option value="contract">{t("companyNew.contract")}</option>
+                            <option value="internship">{t("companyNew.internship")}</option>
+                            <option value="temporary">{t("companyNew.temporary")}</option>
                           </select>
                         </FormControl>
                         <FormMessage />
@@ -272,15 +272,15 @@ export default function NewCompanyJobPage() {
                     name="workplaceType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Workplace type</FormLabel>
+                        <FormLabel>{t("companyNew.workplaceType")}</FormLabel>
                         <FormControl>
                           <select
                             className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
                             {...field}
                           >
-                            <option value="on_site">On site</option>
-                            <option value="hybrid">Hybrid</option>
-                            <option value="remote">Remote</option>
+                            <option value="on_site">{t("companyNew.onSite")}</option>
+                            <option value="hybrid">{t("companyNew.hybrid")}</option>
+                            <option value="remote">{t("companyNew.remote")}</option>
                           </select>
                         </FormControl>
                         <FormMessage />
@@ -296,7 +296,7 @@ export default function NewCompanyJobPage() {
                     rules={{ required: "Minimum salary is required." }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Salary min</FormLabel>
+                        <FormLabel>{t("companyNew.salaryMin")}</FormLabel>
                         <FormControl>
                           <Input inputMode="numeric" placeholder="120000" {...field} />
                         </FormControl>
@@ -310,7 +310,7 @@ export default function NewCompanyJobPage() {
                     rules={{ required: "Maximum salary is required." }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Salary max</FormLabel>
+                        <FormLabel>{t("companyNew.salaryMax")}</FormLabel>
                         <FormControl>
                           <Input inputMode="numeric" placeholder="160000" {...field} />
                         </FormControl>
@@ -324,7 +324,7 @@ export default function NewCompanyJobPage() {
                     rules={{ required: "Currency is required." }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Currency</FormLabel>
+                        <FormLabel>{t("companyNew.currency")}</FormLabel>
                         <FormControl>
                           <Input placeholder="USD" {...field} />
                         </FormControl>
@@ -339,11 +339,11 @@ export default function NewCompanyJobPage() {
                   name="tags"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tags</FormLabel>
+                      <FormLabel>{t("companyNew.tags")}</FormLabel>
                       <FormControl>
                         <Input placeholder="typescript, design, saas" {...field} />
                       </FormControl>
-                      <FormDescription>Comma-separated tags to help candidates find this listing.</FormDescription>
+                      <FormDescription>{t("companyNew.tagsDesc")}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -353,7 +353,7 @@ export default function NewCompanyJobPage() {
               {/* Settings */}
               <div className="space-y-4 border-t border-border pt-6">
                 <h3 className="font-[family-name:var(--font-bricolage)] text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Settings
+                  {t("companyNew.settings")}
                 </h3>
                 <FormField
                   control={form.control}
@@ -367,9 +367,9 @@ export default function NewCompanyJobPage() {
                         />
                       </FormControl>
                       <div>
-                        <FormLabel>Auto-close after first accepted applicant</FormLabel>
+                        <FormLabel>{t("companyNew.autoCloseLabel")}</FormLabel>
                         <FormDescription>
-                          Best for single-hire roles. Leave off if you need multiple hires.
+                          {t("companyNew.autoCloseDesc")}
                         </FormDescription>
                       </div>
                       <FormMessage />
@@ -386,7 +386,7 @@ export default function NewCompanyJobPage() {
                   className="rounded-full bg-terracotta text-white hover:bg-terracotta/90"
                 >
                   <Send className="mr-1.5 size-3.5" />
-                  {form.formState.isSubmitting ? "Creating..." : "Publish listing"}
+                  {form.formState.isSubmitting ? t("companyNew.creating") : t("companyNew.publish")}
                 </Button>
                 <Button
                   type="button"
@@ -394,7 +394,7 @@ export default function NewCompanyJobPage() {
                   className="rounded-full"
                   onClick={() => router.push("/company/jobs")}
                 >
-                  Cancel
+                  {t("companyNew.cancel")}
                 </Button>
                 {statusText && <p className="text-xs text-muted-foreground">{statusText}</p>}
               </div>

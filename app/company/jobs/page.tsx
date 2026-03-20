@@ -36,6 +36,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import { useLanguage } from "@/components/i18n/language-context";
 
 type DecisionStatus = "in_review" | "accepted" | "rejected";
 
@@ -67,6 +68,7 @@ type Tab = "active" | "closed";
 
 export default function CompanyJobsPage() {
   const { orgId } = useAuth();
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>("active");
   const [statusText, setStatusText] = useState<string | null>(null);
   const [mutatingJobId, setMutatingJobId] = useState<string | null>(null);
@@ -88,6 +90,22 @@ export default function CompanyJobsPage() {
   const canManage =
     companyContext?.role === "admin" || companyContext?.role === "recruiter";
 
+  // Inclusive design mock tags (NSC demo): visual labels on each card.
+  const inclusiveTags = [
+    {
+      label: "🟢 Silver Economy",
+      className: "bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/15",
+    },
+    {
+      label: "🔵 Accessible / WFH",
+      className: "bg-cyan-500/15 text-cyan-700 hover:bg-cyan-500/15",
+    },
+    {
+      label: "🟡 Gen-Z Reskill",
+      className: "bg-amber-accent/20 text-amber-accent hover:bg-amber-accent/20",
+    },
+  ] as const;
+
   const activeJobs = allJobs?.filter((j) => j.isActive) ?? [];
   const closedJobs = allJobs?.filter((j) => !j.isActive) ?? [];
   const jobs = tab === "active" ? activeJobs : closedJobs;
@@ -96,7 +114,7 @@ export default function CompanyJobsPage() {
     return (
       <Card className="warm-shadow">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Select an organization to continue.
+          {t("companyJobs.selectOrg")}
         </CardContent>
       </Card>
     );
@@ -116,7 +134,7 @@ export default function CompanyJobsPage() {
     return (
       <Card className="warm-shadow">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Your organization data is still syncing. Refresh in a few seconds.
+          {t("companyJobs.syncing")}
         </CardContent>
       </Card>
     );
@@ -127,17 +145,17 @@ export default function CompanyJobsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-(family-name:--font-bricolage) text-2xl font-bold tracking-tight">
-            Job listings
+            {t("companyJobs.title")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage your company&apos;s open and closed positions.
+            {t("companyJobs.subtitle")}
           </p>
         </div>
         {canManage && (
           <Button asChild size="sm" className="rounded-full bg-terracotta text-white hover:bg-terracotta/90">
             <Link href="/company/jobs/new">
               <Plus className="mr-1.5 size-3.5" />
-              New listing
+              {t("companyJobs.newListing")}
             </Link>
           </Button>
         )}
@@ -153,7 +171,7 @@ export default function CompanyJobsPage() {
           }`}
           onClick={() => { setTab("active"); setExpandedJobId(null); }}
         >
-          Active
+          {t("companyJobs.active")}
           <span className={`rounded-full px-1.5 py-0.5 text-[11px] leading-none ${
             tab === "active" ? "bg-jade/10 text-jade" : "bg-secondary text-muted-foreground"
           }`}>
@@ -168,7 +186,7 @@ export default function CompanyJobsPage() {
           }`}
           onClick={() => { setTab("closed"); setExpandedJobId(null); }}
         >
-          Closed
+          {t("companyJobs.closed")}
           <span className={`rounded-full px-1.5 py-0.5 text-[11px] leading-none ${
             tab === "closed" ? "bg-secondary text-foreground" : "bg-secondary text-muted-foreground"
           }`}>
@@ -186,18 +204,18 @@ export default function CompanyJobsPage() {
               <BriefcaseBusiness className="size-5 text-terracotta" />
             </div>
             <p className="font-medium">
-              {tab === "active" ? "No active listings" : "No closed listings"}
+              {tab === "active" ? t("companyJobs.noActive") : t("companyJobs.noClosed")}
             </p>
             <p className="max-w-sm text-sm text-muted-foreground">
               {tab === "active"
-                ? "Post a new job to start receiving applications from candidates."
-                : "Closed positions will appear here."}
+                ? t("companyJobs.postNewDesc")
+                : t("companyJobs.closedWillAppear")}
             </p>
             {tab === "active" && canManage && (
               <Button asChild className="mt-2 rounded-full bg-terracotta text-white hover:bg-terracotta/90">
                 <Link href="/company/jobs/new">
                   <Plus className="mr-1.5 size-3.5" />
-                  Post your first job
+                  {t("companyJobs.postFirst")}
                 </Link>
               </Button>
             )}
@@ -208,11 +226,12 @@ export default function CompanyJobsPage() {
       <div className="space-y-3">
         {jobs.map((job, index) => {
           const isExpanded = expandedJobId === job._id;
+          const tag = inclusiveTags[index % inclusiveTags.length];
 
           return (
             <Card
               key={job._id}
-              className="@container animate-slide-up warm-shadow overflow-hidden transition-all hover:warm-shadow-md"
+              className="@container relative animate-slide-up warm-shadow overflow-hidden transition-all hover:warm-shadow-md"
               style={{ animationDelay: `${index * 0.04}s` }}
             >
               <CardHeader className="pb-2">
@@ -221,6 +240,14 @@ export default function CompanyJobsPage() {
                     <CardTitle className="font-(family-name:--font-bricolage) text-lg tracking-tight">
                       {job.title}
                     </CardTitle>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      <Badge
+                        variant="secondary"
+                        className={`rounded-full border-0 px-3 py-1 text-[11px] ${tag.className}`}
+                      >
+                        {tag.label}
+                      </Badge>
+                    </div>
                     <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
                       <MapPin className="size-3" />
                       {job.location}
@@ -244,7 +271,7 @@ export default function CompanyJobsPage() {
                     onClick={() => setExpandedJobId(isExpanded ? null : job._id)}
                   >
                     <Users className="size-3" />
-                    {job.applicationCount} applicant{job.applicationCount !== 1 ? "s" : ""}
+                    {job.applicationCount} {job.applicationCount !== 1 ? t("companyJobs.applicants") : t("companyJobs.applicant")}
                     {isExpanded ? (
                       <ChevronUp className="size-3" />
                     ) : (
@@ -282,7 +309,7 @@ export default function CompanyJobsPage() {
                         }}
                       >
                         <X className="mr-1 size-3" />
-                        Close listing
+                        {t("companyJobs.closeListing")}
                       </Button>
                     ) : (
                       <Button
@@ -308,11 +335,11 @@ export default function CompanyJobsPage() {
                         }}
                       >
                         <RotateCcw className="mr-1 size-3" />
-                        Reopen
+                        {t("companyJobs.reopen")}
                       </Button>
                     )}
                     <Button asChild size="sm" variant="outline" className="rounded-full text-xs">
-                      <Link href={`/company/jobs/${job._id}/edit`}>Edit</Link>
+                      <Link href={`/company/jobs/${job._id}/edit`}>{t("companyJobs.edit")}</Link>
                     </Button>
                     <Button
                       size="sm"
@@ -341,12 +368,12 @@ export default function CompanyJobsPage() {
                       }}
                     >
                       {job.autoCloseOnAccept ? <ToggleRight className="mr-1 size-3" /> : <ToggleLeft className="mr-1 size-3" />}
-                      {job.autoCloseOnAccept ? "Disable auto-close" : "Enable auto-close"}
+                      {job.autoCloseOnAccept ? t("companyJobs.disableAutoClose") : t("companyJobs.enableAutoClose")}
                     </Button>
                   </div>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    Read-only access for your role.
+                    {t("companyJobs.readOnly")}
                   </p>
                 )}
               </CardContent>
@@ -375,6 +402,7 @@ function JobApplicants({
   jobId: Id<"jobListings">;
   canDecide: boolean;
 }) {
+  const { t } = useLanguage();
   const applications = useQuery(api.applications.listCompanyApplications, {
     companyId,
     jobId,
@@ -424,7 +452,7 @@ function JobApplicants({
         <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-secondary">
           <Users className="size-4 text-muted-foreground" />
         </div>
-        <p className="mt-2 text-sm text-muted-foreground">No applications yet</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("companyJobs.noAppsYet")}</p>
       </div>
     );
   }
@@ -432,7 +460,7 @@ function JobApplicants({
   return (
     <div className="border-t border-border bg-secondary/20 p-4">
       <p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">
-        {applications.length} applicant{applications.length !== 1 ? "s" : ""}
+        {applications.length} {applications.length !== 1 ? t("companyJobs.applicants") : t("companyJobs.applicant")}
       </p>
       <div className="space-y-2">
         {[...applications]
@@ -506,7 +534,7 @@ function JobApplicants({
                     )}
                     {(application.profile?.skills?.length ?? 0) > 0 && (
                       <span className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] text-muted-foreground">
-                        {application.profile!.skills.length} skills
+                        {application.profile!.skills.length} {t("companyApps.skills").toLowerCase()}
                       </span>
                     )}
                   </div>
@@ -531,7 +559,7 @@ function JobApplicants({
                         <div>
                           <h3 className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-foreground/80">
                             <User className="size-3" />
-                            {application.profile?.summary ? "Summary" : "Cover Letter"}
+                            {application.profile?.summary ? t("companyApps.summary") : t("companyApps.coverLetter")}
                           </h3>
                           <p className="text-sm leading-relaxed text-foreground/70">
                             {application.profile?.summary ?? application.coverLetter}
@@ -539,7 +567,7 @@ function JobApplicants({
                           {application.profile?.summary && application.coverLetter && (
                             <div className="mt-2.5">
                               <h4 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
-                                Cover Letter
+                                {t("companyApps.coverLetter")}
                               </h4>
                               <p className="text-sm leading-relaxed text-foreground/70">
                                 {application.coverLetter}
@@ -553,7 +581,7 @@ function JobApplicants({
                         <div>
                           <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/80">
                             <Briefcase className="size-3 text-terracotta" />
-                            Experience
+                            {t("companyApps.experience")}
                           </h3>
                           <div className="space-y-2">
                             {application.experiences?.map((exp) => (
@@ -584,7 +612,7 @@ function JobApplicants({
                         <div>
                           <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/80">
                             <GraduationCap className="size-3 text-jade" />
-                            Education
+                            {t("companyApps.education")}
                           </h3>
                           <div className="space-y-2">
                             {application.education?.map((edu) => (
@@ -615,7 +643,7 @@ function JobApplicants({
                         <div>
                           <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/80">
                             <Award className="size-3 text-amber-accent" />
-                            Certifications
+                            {t("companyApps.certifications")}
                           </h3>
                           <div className="space-y-1.5">
                             {application.certifications?.map((cert) => (
@@ -649,7 +677,7 @@ function JobApplicants({
 
                       {!hasProfile && !application.coverLetter && (
                         <p className="py-3 text-center text-sm italic text-muted-foreground">
-                          This applicant hasn&apos;t completed their profile yet.
+                          {t("companyApps.noProfile")}
                         </p>
                       )}
                     </div>
@@ -658,7 +686,7 @@ function JobApplicants({
                     <div className="space-y-4">
                       {(application.profile?.skills?.length ?? 0) > 0 && (
                         <div>
-                          <h4 className="mb-1.5 text-xs font-semibold uppercase text-muted-foreground">Skills</h4>
+                          <h4 className="mb-1.5 text-xs font-semibold uppercase text-muted-foreground">{t("companyApps.skills")}</h4>
                           <div className="flex flex-wrap gap-1">
                             {application.profile!.skills.map((skill) => (
                               <Badge
@@ -674,7 +702,7 @@ function JobApplicants({
                       )}
 
                       <div>
-                        <h4 className="mb-1.5 text-xs font-semibold uppercase text-muted-foreground">Contact & Links</h4>
+                        <h4 className="mb-1.5 text-xs font-semibold uppercase text-muted-foreground">{t("companyApps.contactLinks")}</h4>
                         <div className="space-y-1 text-sm">
                           {application.applicant?.email && (
                             <p className="text-foreground/80">{application.applicant.email}</p>
@@ -711,7 +739,7 @@ function JobApplicants({
 
                       {(application.resumes?.length ?? 0) > 0 && (
                         <div>
-                          <h4 className="mb-1.5 text-xs font-semibold uppercase text-muted-foreground">Resume</h4>
+                          <h4 className="mb-1.5 text-xs font-semibold uppercase text-muted-foreground">{t("companyApps.resumeResources")}</h4>
                           <div className="space-y-1.5">
                             {application.resumes?.map((file) => (
                               <a
@@ -741,14 +769,14 @@ function JobApplicants({
 
                       {application.profile?.yearsExperience != null && (
                         <div className="rounded-lg border border-border bg-card p-2.5">
-                          <p className="text-xs text-muted-foreground">Years of experience</p>
+                          <p className="text-xs text-muted-foreground">{t("companyApps.yearsExp")}</p>
                           <p className="text-lg font-bold">{application.profile.yearsExperience}</p>
                         </div>
                       )}
 
                       {canDecide && application.status !== "withdrawn" && (
                         <div className="space-y-1.5 border-t border-border pt-3">
-                          <h4 className="text-xs font-semibold uppercase text-muted-foreground">Actions</h4>
+                          <h4 className="text-xs font-semibold uppercase text-muted-foreground">{t("companyApps.actions")}</h4>
                           <div className="flex flex-col gap-1.5">
                             <Button
                               size="sm"
@@ -757,7 +785,7 @@ function JobApplicants({
                               disabled={mutatingAppId === application._id || application.status === "in_review"}
                               onClick={(e) => { e.stopPropagation(); handleStatusUpdate(application._id, "in_review"); }}
                             >
-                              <Clock className="mr-2 size-3" /> Move to review
+                              <Clock className="mr-2 size-3" /> {t("companyApps.moveToReview")}
                             </Button>
                             <Button
                               size="sm"
@@ -765,7 +793,7 @@ function JobApplicants({
                               disabled={mutatingAppId === application._id || application.status === "accepted"}
                               onClick={(e) => { e.stopPropagation(); handleStatusUpdate(application._id, "accepted"); }}
                             >
-                              <CheckCircle2 className="mr-2 size-3" /> Accept candidate
+                              <CheckCircle2 className="mr-2 size-3" /> {t("companyApps.acceptCandidate")}
                             </Button>
                             <Button
                               size="sm"
@@ -774,7 +802,7 @@ function JobApplicants({
                               disabled={mutatingAppId === application._id || application.status === "rejected"}
                               onClick={(e) => { e.stopPropagation(); handleStatusUpdate(application._id, "rejected"); }}
                             >
-                              <XCircle className="mr-2 size-3" /> Reject candidate
+                              <XCircle className="mr-2 size-3" /> {t("companyApps.rejectCandidate")}
                             </Button>
                           </div>
                         </div>

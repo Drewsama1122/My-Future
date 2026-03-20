@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteLogo } from "@/components/site-logo";
+import { useLanguage } from "@/components/i18n/language-context";
 
 const AVATARS = [
   { src: "https://i.pravatar.cc/120?img=1", size: 72, top: "12%", left: "6%", delay: "0s" },
@@ -69,8 +70,8 @@ const HOW_IT_WORKS = [
   },
   {
     icon: PenLine,
-    title: "Apply job or hire",
-    description: "Apply & get your preferable jobs with all the requirements and get it.",
+    title: "Explore Skill Paths",
+    description: "Discover learning paths that match market needs and your profile.",
   },
 ];
 
@@ -85,6 +86,7 @@ const EMPLOYMENT_TYPES = [
 
 export default function Home() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { lang, setLang, t } = useLanguage();
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
@@ -92,28 +94,30 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-3.5">
           <SiteLogo />
 
+          {/* Desktop nav — ปุ่มสลับภาษาอยู่ตรงกลาง */}
           <nav className="hidden items-center gap-1 md:flex">
-            <Link
-              href="/jobs"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            <button
+              type="button"
+              onClick={() => setLang(lang === "th" ? "en" : "th")}
+              className="inline-flex items-center rounded-full border border-border/40 bg-secondary/30 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+              aria-label="Toggle language"
             >
-              Find Jobs
-            </Link>
-            <Link
-              href="/company"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              For Employers
-            </Link>
-            <Link
-              href="/pricing"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Pricing
-            </Link>
+              {lang === "th" ? "TH" : "EN"}
+              <span className="mx-1 text-border">|</span>
+              <span className="text-muted-foreground/50">{lang === "th" ? "EN" : "TH"}</span>
+            </button>
           </nav>
 
           <div className="hidden items-center gap-3 md:flex">
+            {/* ลิงก์โปรไฟล์พร้อมไอคอน */}
+            <Link
+              href="/profile"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <UserRound className="size-4" />
+              {t("nav.profile")}
+            </Link>
+
             <SignedOut>
               <SignInButton mode="modal" forceRedirectUrl="/">
                 <Button
@@ -121,7 +125,7 @@ export default function Home() {
                   size="sm"
                   className="rounded-full border-foreground/20 px-5 text-sm font-medium"
                 >
-                  Login/Sign up
+                  {t("action.loginSignup")}
                 </Button>
               </SignInButton>
               <Button
@@ -129,27 +133,27 @@ export default function Home() {
                 size="sm"
                 className="rounded-full bg-jade px-5 text-sm font-medium text-white hover:bg-jade/90"
               >
-                <Link href="/company">Post a job</Link>
+                <Link href="/company">{t("action.postLearningProgram")}</Link>
               </Button>
             </SignedOut>
             <SignedIn>
               <Button asChild variant="outline" size="sm" className="rounded-full px-5">
-                <Link href="/jobs">Browse Jobs</Link>
+                <Link href="/jobs">{t("nav.skillPaths")}</Link>
               </Button>
               <UserButton>
                 <UserButton.MenuItems>
                   <UserButton.Link
-                    label="Edit my Profile"
+                    label={t("profile.editMyProfile")}
                     labelIcon={<Pencil className="size-4" />}
                     href="/profile"
                   />
                   <UserButton.Link
-                    label="Experience"
+                    label={t("profile.experience")}
                     labelIcon={<Briefcase className="size-4" />}
                     href="/profile#experience"
                   />
                   <UserButton.Link
-                    label="Resume"
+                    label={t("profile.resume")}
                     labelIcon={<FileText className="size-4" />}
                     href="/profile#resume"
                   />
@@ -165,17 +169,17 @@ export default function Home() {
               <UserButton>
                 <UserButton.MenuItems>
                   <UserButton.Link
-                    label="Edit my Profile"
+                    label={t("profile.editMyProfile")}
                     labelIcon={<Pencil className="size-4" />}
                     href="/profile"
                   />
                   <UserButton.Link
-                    label="Experience"
+                    label={t("profile.experience")}
                     labelIcon={<Briefcase className="size-4" />}
                     href="/profile#experience"
                   />
                   <UserButton.Link
-                    label="Resume"
+                    label={t("profile.resume")}
                     labelIcon={<FileText className="size-4" />}
                     href="/profile#resume"
                   />
@@ -196,27 +200,15 @@ export default function Home() {
 
         {mobileOpen && (
           <div className="border-t border-border/40 bg-background px-6 pb-5 pt-3 md:hidden">
+            {/* Mobile nav — โปรไฟล์พร้อมไอคอน */}
             <nav className="flex flex-col gap-1">
               <Link
-                href="/jobs"
+                href="/profile"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
               >
-                Find Jobs
-              </Link>
-              <Link
-                href="/company"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-              >
-                For Employers
-              </Link>
-              <Link
-                href="/pricing"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-              >
-                Pricing
+                <UserRound className="size-4" />
+                {t("nav.profile")}
               </Link>
             </nav>
             <div className="mt-4 flex flex-col gap-2">
@@ -226,7 +218,7 @@ export default function Home() {
                     variant="outline"
                     className="w-full rounded-full border-foreground/20 text-sm font-medium"
                   >
-                    Login/Sign up
+                    {t("action.loginSignup")}
                   </Button>
                 </SignInButton>
                 <Button
@@ -234,14 +226,14 @@ export default function Home() {
                   className="w-full rounded-full bg-jade text-sm font-medium text-white hover:bg-jade/90"
                 >
                   <Link href="/company" onClick={() => setMobileOpen(false)}>
-                    Post a job
+                    {t("action.postLearningProgram")}
                   </Link>
                 </Button>
               </SignedOut>
               <SignedIn>
                 <Button asChild className="w-full rounded-full bg-jade text-white hover:bg-jade/90">
                   <Link href="/jobs" onClick={() => setMobileOpen(false)}>
-                    Browse Jobs
+                    {t("nav.skillPaths")}
                   </Link>
                 </Button>
               </SignedIn>
@@ -291,14 +283,15 @@ export default function Home() {
         ))}
 
         <div className="relative z-10 mx-auto max-w-2xl text-center">
+          {/* หัวข้อ Hero — เปลี่ยนเป็น EdTech wording */}
           <h1 className="animate-fade-in font-(family-name:--font-bricolage) text-4xl leading-[1.1] font-bold tracking-tight md:text-5xl lg:text-6xl">
-            Find & Hire
+            {t("landing.heroTitle1")}
             <br />
-            Experts for any Job
+            {t("landing.heroTitle2")}
           </h1>
 
           <p className="animate-fade-in stagger-2 mx-auto mt-6 max-w-lg text-base text-muted-foreground md:text-lg">
-            Jobs & Job search. Find jobs in global. Executive jobs & work.
+            {t("landing.heroDescription")}
           </p>
 
           <div className="@container animate-slide-up stagger-3 mx-auto mt-10 max-w-xl">
@@ -310,7 +303,7 @@ export default function Home() {
               <div className="flex flex-1 flex-col divide-y divide-border @sm:flex-row @sm:items-center @sm:divide-x @sm:divide-y-0">
                 <div className="relative flex-1 px-4 py-3">
                   <label className="mb-0.5 block text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                    Employment Type
+                    {t("landing.employmentType")}
                   </label>
                   <select
                     name="type"
@@ -327,12 +320,12 @@ export default function Home() {
 
                 <div className="flex-1 px-4 py-3">
                   <label className="mb-0.5 block text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                    Keywords or Title
+                    {t("landing.keywordsOrTitle")}
                   </label>
                   <input
                     type="text"
                     name="q"
-                    placeholder="Design, branding"
+                    placeholder={t("landing.keywordsPlaceholder")}
                     className="w-full bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground/60 outline-none"
                   />
                 </div>
@@ -343,13 +336,13 @@ export default function Home() {
                 className="m-2 flex items-center justify-center gap-2 rounded-md bg-jade px-6 py-3 text-sm font-bold tracking-wide text-white uppercase transition-colors hover:bg-jade/90"
               >
                 <Search className="size-4" />
-                Search
+                {t("action.search")}
               </button>
             </form>
           </div>
 
           <div className="animate-slide-up stagger-4 mt-5 flex items-center justify-center gap-1 text-sm">
-            <span className="font-semibold text-foreground">Popular:</span>
+            <span className="font-semibold text-foreground">{t("landing.popular")}</span>
             {POPULAR_TAGS.map((tag, i) => (
               <span key={tag}>
                 <Link
@@ -382,8 +375,9 @@ export default function Home() {
 
       <section className="border-t border-border/40 bg-linear-to-b from-secondary/40 to-background py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-6">
+          {/* หัวข้อ "How it works" — รองรับ i18n */}
           <h2 className="animate-fade-in text-center font-(family-name:--font-bricolage) text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-            How it&apos;s work?
+            {t("landing.howItWorks")}
           </h2>
 
           <div className="relative mt-14 grid gap-12 md:mt-20 md:grid-cols-3 md:gap-0">
@@ -435,14 +429,13 @@ export default function Home() {
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-jade/10 px-3 py-1 text-xs font-semibold tracking-wide text-jade uppercase">
               <Heart className="size-3" />
-              For Job Seekers
+              {t("landing.forLearners")}
             </span>
             <h2 className="mt-4 font-(family-name:--font-bricolage) text-3xl font-bold tracking-tight md:text-4xl">
-              Browse jobs & build your career
+              {t("landing.learnersTitle")}
             </h2>
             <p className="mt-4 max-w-md text-muted-foreground">
-              Search thousands of openings, save the ones you love, and apply in
-              minutes. Track every application from one calm dashboard.
+              {t("landing.learnersDesc")}
             </p>
             <ul className="mt-8 space-y-4">
               <li className="flex items-start gap-3">
@@ -450,9 +443,9 @@ export default function Home() {
                   <Search className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Smart search & filters</p>
+                  <p className="text-sm font-semibold">{t("landing.smartSearch")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Filter by location, workplace type, employment type, salary, and more.
+                    {t("landing.smartSearchDesc")}
                   </p>
                 </div>
               </li>
@@ -461,9 +454,9 @@ export default function Home() {
                   <Bookmark className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Save your favorites</p>
+                  <p className="text-sm font-semibold">{t("landing.saveFavorites")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Bookmark jobs and come back to them anytime from your saved list.
+                    {t("landing.saveFavoritesDesc")}
                   </p>
                 </div>
               </li>
@@ -472,9 +465,11 @@ export default function Home() {
                   <Send className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Apply with one click</p>
+                  <p className="text-sm font-semibold">
+                    {t("action.startLearningOneClick")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    Submit your application with an optional cover letter and track its status in real time.
+                    {t("landing.oneClickDesc")}
                   </p>
                 </div>
               </li>
@@ -483,9 +478,9 @@ export default function Home() {
                   <FileText className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Profile & resume</p>
+                  <p className="text-sm font-semibold">{t("landing.profileResume")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Build your profile, upload resumes, and set your open-to-work status.
+                    {t("landing.profileResumeDesc")}
                   </p>
                 </div>
               </li>
@@ -496,7 +491,7 @@ export default function Home() {
                 className="rounded-full bg-jade px-6 text-white hover:bg-jade/90"
               >
                 <Link href="/jobs">
-                  Browse all jobs
+                  {t("action.browseAllSkillPaths")}
                   <ArrowRight className="ml-2 size-4" />
                 </Link>
               </Button>
@@ -551,18 +546,18 @@ export default function Home() {
                       <Building2 className="size-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold">Your Company</p>
-                      <p className="text-xs text-muted-foreground">3 active jobs &middot; 12 applicants</p>
+                      <p className="text-sm font-semibold">Your Learning Provider</p>
+                      <p className="text-xs text-muted-foreground">3 active programs &middot; 12 learners</p>
                     </div>
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-3">
                     <div className="rounded-lg bg-secondary/60 p-3 text-center">
                       <p className="font-(family-name:--font-bricolage) text-xl font-bold">3</p>
-                      <p className="text-[11px] text-muted-foreground">Active Jobs</p>
+                      <p className="text-[11px] text-muted-foreground">Active Programs</p>
                     </div>
                     <div className="rounded-lg bg-secondary/60 p-3 text-center">
                       <p className="font-(family-name:--font-bricolage) text-xl font-bold">12</p>
-                      <p className="text-[11px] text-muted-foreground">Applicants</p>
+                      <p className="text-[11px] text-muted-foreground">Learners</p>
                     </div>
                     <div className="rounded-lg bg-secondary/60 p-3 text-center">
                       <p className="font-(family-name:--font-bricolage) text-xl font-bold">4</p>
@@ -603,14 +598,13 @@ export default function Home() {
           <div className="order-1 lg:order-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold tracking-wide text-terracotta uppercase">
               <Building2 className="size-3" />
-              For Companies
+              {t("landing.forProviders")}
             </span>
             <h2 className="mt-4 font-(family-name:--font-bricolage) text-3xl font-bold tracking-tight md:text-4xl">
-              Post jobs & hire your next team
+              {t("landing.providersTitle")}
             </h2>
             <p className="mt-4 max-w-md text-muted-foreground">
-              Create your company workspace, post openings, review applicants, and
-              manage your hiring pipeline as a team.
+              {t("landing.providersDesc")}
             </p>
             <ul className="mt-8 space-y-4">
               <li className="flex items-start gap-3">
@@ -618,9 +612,9 @@ export default function Home() {
                   <BriefcaseBusiness className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Post & manage listings</p>
+                  <p className="text-sm font-semibold">{t("landing.publishManage")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Create job posts with salary, location, tags, and auto-close settings.
+                    {t("landing.publishManageDesc")}
                   </p>
                 </div>
               </li>
@@ -629,9 +623,9 @@ export default function Home() {
                   <Shield className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Review applications</p>
+                  <p className="text-sm font-semibold">{t("landing.reviewProgress")}</p>
                   <p className="text-sm text-muted-foreground">
-                    See cover letters, update statuses, and accept or pass on candidates.
+                    {t("landing.reviewProgressDesc")}
                   </p>
                 </div>
               </li>
@@ -640,9 +634,9 @@ export default function Home() {
                   <Users className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Team & role-based access</p>
+                  <p className="text-sm font-semibold">{t("landing.teamAccess")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Invite teammates with admin or recruiter roles to collaborate on hiring.
+                    {t("landing.teamAccessDesc")}
                   </p>
                 </div>
               </li>
@@ -651,9 +645,9 @@ export default function Home() {
                   <Sparkles className="size-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Flexible plans</p>
+                  <p className="text-sm font-semibold">{t("landing.flexPackages")}</p>
                   <p className="text-sm text-muted-foreground">
-                    Start free, then upgrade to Starter or Growth as your team scales.
+                    {t("landing.flexPackagesDesc")}
                   </p>
                 </div>
               </li>
@@ -664,13 +658,11 @@ export default function Home() {
                 className="rounded-full bg-terracotta px-6 text-white hover:bg-terracotta/90"
               >
                 <Link href="/company">
-                  Company workspace
+                  {t("action.learningProviderWorkspace")}
                   <ArrowRight className="ml-2 size-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="rounded-full px-6">
-                <Link href="/pricing">View plans</Link>
-              </Button>
+              {/* Billing/Pricing is hidden in this NSC demo. */}
             </div>
           </div>
         </div>
@@ -680,10 +672,10 @@ export default function Home() {
       <section className="border-t border-border/40 py-12 md:py-16">
         <div className="mx-auto grid max-w-4xl gap-8 px-6 md:grid-cols-4">
           {[
-            { value: "$0", label: "Always free for candidates" },
-            { value: "3", label: "Plans for companies" },
-            { value: "10", label: "Team seats per workspace" },
-            { value: "24/7", label: "Real-time application updates" },
+            { value: "$0", label: t("landing.statFree") },
+            { value: "3", label: t("landing.statPackages") },
+            { value: "10", label: t("landing.statSeats") },
+            { value: "24/7", label: t("landing.statRealtime") },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <p className="font-(family-name:--font-bricolage) text-3xl font-bold tracking-tight">
@@ -698,12 +690,12 @@ export default function Home() {
       {/* CTA */}
       <section className="border-t border-border/40 bg-foreground py-16 text-background md:py-24">
         <div className="mx-auto max-w-3xl px-6 text-center">
+          {/* หัวข้อ CTA — รองรับ i18n */}
           <h2 className="font-(family-name:--font-bricolage) text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-            Ready to get started?
+            {t("landing.readyTitle")}
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-background/60">
-            Whether you&apos;re looking for your next role or hiring for your team, MyFuture
-            makes it simple. Sign up free and start today.
+            {t("landing.readyDesc")}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <SignedOut>
@@ -712,7 +704,7 @@ export default function Home() {
                   size="lg"
                   className="rounded-full bg-jade px-8 text-white hover:bg-jade/90"
                 >
-                  Sign up free
+                  {t("action.signUpFree")}
                   <ArrowRight className="ml-2 size-4" />
                 </Button>
               </SignInButton>
@@ -722,7 +714,7 @@ export default function Home() {
                 variant="outline"
                 className="rounded-full border-background/40 bg-background/10 px-8 text-background hover:bg-background/20"
               >
-                <Link href="/jobs">Browse jobs first</Link>
+                <Link href="/jobs">{t("action.browseLearningPaths")}</Link>
               </Button>
             </SignedOut>
             <SignedIn>
@@ -732,7 +724,7 @@ export default function Home() {
                 className="rounded-full bg-jade px-8 text-white hover:bg-jade/90"
               >
                 <Link href="/jobs">
-                  Go to dashboard
+                  {t("action.goToDashboard")}
                   <ArrowRight className="ml-2 size-4" />
                 </Link>
               </Button>
@@ -742,7 +734,7 @@ export default function Home() {
                 variant="outline"
                 className="rounded-full border-background/40 bg-background/10 px-8 text-background hover:bg-background/20"
               >
-                <Link href="/company">Company workspace</Link>
+                <Link href="/company">{t("action.learningProviderWorkspace")}</Link>
               </Button>
             </SignedIn>
           </div>
@@ -754,9 +746,12 @@ export default function Home() {
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-6 py-10 md:flex-row md:justify-between">
           <SiteLogo />
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <Link href="/jobs" className="transition-colors hover:text-foreground">Jobs</Link>
-            <Link href="/company" className="transition-colors hover:text-foreground">Companies</Link>
-            <Link href="/pricing" className="transition-colors hover:text-foreground">Pricing</Link>
+            <Link href="/jobs" className="transition-colors hover:text-foreground">
+              {t("nav.skillPaths")}
+            </Link>
+            <Link href="/company" className="transition-colors hover:text-foreground">
+              {t("nav.forLearningProviders")}
+            </Link>
           </nav>
           <p className="text-xs text-muted-foreground/60">
             &copy; {new Date().getFullYear()} MyFuture.

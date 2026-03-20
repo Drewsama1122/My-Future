@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "@/components/i18n/language-context";
 import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { useForm } from "react-hook-form";
@@ -88,6 +89,7 @@ type CertificationFormValues = {
 
 export default function ProfilePage() {
   const { user: clerkUser } = useUser();
+  const { t } = useLanguage();
   const profileBundle = useQuery(api.profiles.getMyProfile, {});
   const upsertMyProfile = useMutation(api.profiles.upsertMyProfile);
   const saveResume = useMutation(api.profiles.saveResume);
@@ -108,6 +110,7 @@ export default function ProfilePage() {
   const [formMounted, setFormMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormMounted(true);
   }, []);
 
@@ -162,6 +165,42 @@ export default function ProfilePage() {
   }, [form, profileBundle]);
 
   const profile = profileBundle?.profile;
+  const skillGapData = useMemo(() => {
+    const haveSkills = (profile?.skills ?? [])
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 6);
+
+    const haveSet = new Set(haveSkills.map((s) => s.toLowerCase()));
+    const marketNeeds = [
+      "Communication",
+      "Problem Solving",
+      "Project Management",
+      "System Design",
+      "Data Structures",
+      "AI Literacy",
+    ];
+
+    const topics = [
+      ...haveSkills,
+      ...marketNeeds.filter((s) => !haveSet.has(s.toLowerCase())),
+    ].slice(0, 6);
+
+    const clamp = (n: number, min: number, max: number) =>
+      Math.max(min, Math.min(max, n));
+
+    return topics.map((label, idx) => {
+      const hasSkill = haveSet.has(label.toLowerCase());
+      const marketHot = marketNeeds.some((m) => m.toLowerCase() === label.toLowerCase());
+
+      // Mock scores for NSC demo: "have" reflects the candidate profile skills,
+      // while "market" reflects generic market demand.
+      const have = clamp((hasSkill ? 72 : 28) - idx * 2, 10, 90);
+      const market = clamp((marketHot ? 88 : 60) - idx * 1.5, 20, 95);
+
+      return { label, have, market };
+    });
+  }, [profile?.skills]);
   const displayName =
     [profile?.firstName, profile?.lastName].some((s) => s != null && s.trim() !== "")
       ? `${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim()
@@ -178,7 +217,7 @@ export default function ProfilePage() {
             <div className="absolute left-4 top-4">
               <Badge className="gap-1 rounded-full bg-jade/90 px-3 py-1 text-xs font-semibold text-white">
                 <Sparkles className="size-3" />
-                Open to work
+                {t("prof.openToWork")}
               </Badge>
             </div>
           )}
@@ -198,7 +237,7 @@ export default function ProfilePage() {
             </div>
             <div className="min-w-0 flex-1 pt-2">
               <h1 className="font-(family-name:--font-bricolage) text-2xl font-bold tracking-tight">
-                {displayName || "Your Name"}
+                {displayName || t("prof.yourName")}
               </h1>
               {profile?.headline && (
                 <p className="mt-0.5 text-base text-muted-foreground">
@@ -267,13 +306,13 @@ export default function ProfilePage() {
           <Card className="warm-shadow">
             <CardHeader>
               <CardTitle className="font-(family-name:--font-bricolage) text-xl tracking-tight">
-                About
+                {t("prof.about")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {!formMounted ? (
                 <div className="flex min-h-[200px] items-center justify-center text-sm text-muted-foreground">
-                  Loading…
+                  {t("prof.loading")}
                 </div>
               ) : (
               <Form {...form}>
@@ -283,7 +322,7 @@ export default function ProfilePage() {
                     setStatusText(null);
                     const years = values.yearsExperience?.trim() ?? "";
                     if (years && Number.isNaN(Number(years))) {
-                      setStatusText("Years of experience must be a number.");
+                      setStatusText(t("prof.yearsExpMustBeNumber"));
                       return;
                     }
                     try {
@@ -305,9 +344,9 @@ export default function ProfilePage() {
                           .filter(Boolean),
                         openToWork: values.openToWork ?? true,
                       });
-                      setStatusText("Profile saved.");
+                      setStatusText(t("prof.saved"));
                     } catch (error) {
-                      setStatusText(getErrorMessage(error, "Could not save profile."));
+                      setStatusText(getErrorMessage(error, t("prof.couldNotSave")));
                     }
                   })}
                 >
@@ -317,9 +356,9 @@ export default function ProfilePage() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First name</FormLabel>
+                          <FormLabel>{t("prof.firstName")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Your first name" {...field} />
+                            <Input placeholder={t("prof.firstNamePh")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -330,9 +369,9 @@ export default function ProfilePage() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last name</FormLabel>
+                          <FormLabel>{t("prof.lastName")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Your last name" {...field} />
+                            <Input placeholder={t("prof.lastNamePh")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -344,15 +383,15 @@ export default function ProfilePage() {
                     name="headline"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Headline</FormLabel>
+                        <FormLabel>{t("prof.headline")}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g. Senior Frontend Engineer"
+                            placeholder={t("prof.headlinePh")}
                             {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          A short title that describes what you do.
+                          {t("prof.headlineDesc")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -364,17 +403,16 @@ export default function ProfilePage() {
                     name="summary"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Summary</FormLabel>
+                        <FormLabel>{t("prof.summary")}</FormLabel>
                         <FormControl>
                           <Textarea
                             rows={4}
-                            placeholder="Write a compelling summary of your professional background, key achievements, and what you're looking for..."
+                            placeholder={t("prof.summaryPh")}
                             {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          Your professional elevator pitch — recruiters see this
-                          first.
+                          {t("prof.summaryDesc")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -386,11 +424,11 @@ export default function ProfilePage() {
                     name="bio"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Bio</FormLabel>
+                        <FormLabel>{t("prof.bio")}</FormLabel>
                         <FormControl>
                           <Textarea
                             rows={3}
-                            placeholder="A more personal note about your interests, passions, or what drives you..."
+                            placeholder={t("prof.bioPh")}
                             {...field}
                           />
                         </FormControl>
@@ -405,10 +443,10 @@ export default function ProfilePage() {
                       name="location"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Location</FormLabel>
+                          <FormLabel>{t("prof.location")}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="e.g. San Francisco, CA"
+                              placeholder={t("prof.locationPh")}
                               {...field}
                             />
                           </FormControl>
@@ -421,11 +459,11 @@ export default function ProfilePage() {
                       name="yearsExperience"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Years of experience</FormLabel>
+                          <FormLabel>{t("prof.yearsExp")}</FormLabel>
                           <FormControl>
                             <Input
                               inputMode="numeric"
-                              placeholder="e.g. 5"
+                              placeholder={t("prof.yearsExpPh")}
                               {...field}
                             />
                           </FormControl>
@@ -441,10 +479,10 @@ export default function ProfilePage() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone</FormLabel>
+                          <FormLabel>{t("prof.phone")}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="+1 (555) 000-0000"
+                              placeholder={t("prof.phonePh")}
                               {...field}
                             />
                           </FormControl>
@@ -457,10 +495,10 @@ export default function ProfilePage() {
                       name="website"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Portfolio / Website</FormLabel>
+                          <FormLabel>{t("prof.portfolio")}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="https://yoursite.com"
+                              placeholder={t("prof.portfolioPh")}
                               {...field}
                             />
                           </FormControl>
@@ -476,10 +514,10 @@ export default function ProfilePage() {
                       name="linkedinUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>LinkedIn URL</FormLabel>
+                          <FormLabel>{t("prof.linkedinUrl")}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="https://linkedin.com/in/yourname"
+                              placeholder={t("prof.linkedinPh")}
                               {...field}
                             />
                           </FormControl>
@@ -492,10 +530,10 @@ export default function ProfilePage() {
                       name="githubUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>GitHub URL</FormLabel>
+                          <FormLabel>{t("prof.githubUrl")}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="https://github.com/yourname"
+                              placeholder={t("prof.githubPh")}
                               {...field}
                             />
                           </FormControl>
@@ -510,15 +548,15 @@ export default function ProfilePage() {
                     name="skills"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Skills</FormLabel>
+                        <FormLabel>{t("prof.skills")}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="React, TypeScript, Product design"
+                            placeholder={t("prof.skillsPh")}
                             {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          Separate skills with commas.
+                          {t("prof.skillsDesc")}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -539,9 +577,9 @@ export default function ProfilePage() {
                           />
                         </FormControl>
                         <div>
-                          <FormLabel>Open to work</FormLabel>
+                          <FormLabel>{t("prof.openToWorkLabel")}</FormLabel>
                           <FormDescription>
-                            Let recruiters know you&apos;re available.
+                            {t("prof.openToWorkDesc")}
                           </FormDescription>
                         </div>
                       </FormItem>
@@ -554,11 +592,11 @@ export default function ProfilePage() {
                       className="rounded-full bg-jade text-white hover:bg-jade/90"
                     >
                       <Save className="mr-1.5 size-3.5" />
-                      Save profile
+                      {t("prof.saveProfile")}
                     </Button>
                     {statusText && (
                       <p
-                        className={`text-xs ${statusText.includes("saved") ? "text-jade" : "text-muted-foreground"}`}
+                        className={`text-xs ${statusText === t("prof.saved") ? "text-jade" : "text-muted-foreground"}`}
                       >
                         {statusText}
                       </p>
@@ -577,7 +615,7 @@ export default function ProfilePage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2 font-(family-name:--font-bricolage) text-xl tracking-tight">
                 <Briefcase className="size-5 text-terracotta" />
-                Experience
+                {t("prof.experience")}
               </CardTitle>
               <Button
                 size="sm"
@@ -586,7 +624,7 @@ export default function ProfilePage() {
                 onClick={() => setEditingExperience("new")}
               >
                 <Plus className="mr-1 size-3.5" />
-                Add
+                {t("prof.add")}
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -615,8 +653,7 @@ export default function ProfilePage() {
               {(profileBundle?.experiences ?? []).length === 0 &&
                 editingExperience !== "new" && (
                   <p className="py-4 text-center text-sm text-muted-foreground">
-                    No experience added yet. Add your work history to stand out
-                    to recruiters.
+                    {t("prof.noExpYet")}
                   </p>
                 )}
 
@@ -681,7 +718,7 @@ export default function ProfilePage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2 font-(family-name:--font-bricolage) text-xl tracking-tight">
                 <GraduationCap className="size-5 text-jade" />
-                Education
+                {t("prof.education")}
               </CardTitle>
               <Button
                 size="sm"
@@ -690,7 +727,7 @@ export default function ProfilePage() {
                 onClick={() => setEditingEducation("new")}
               >
                 <Plus className="mr-1 size-3.5" />
-                Add
+                {t("prof.add")}
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -718,7 +755,7 @@ export default function ProfilePage() {
               {(profileBundle?.education ?? []).length === 0 &&
                 editingEducation !== "new" && (
                   <p className="py-4 text-center text-sm text-muted-foreground">
-                    No education added yet.
+                    {t("prof.noEduYet")}
                   </p>
                 )}
 
@@ -780,7 +817,7 @@ export default function ProfilePage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-2 font-(family-name:--font-bricolage) text-xl tracking-tight">
                 <Award className="size-5 text-amber-accent" />
-                Certifications
+                {t("prof.certifications")}
               </CardTitle>
               <Button
                 size="sm"
@@ -789,7 +826,7 @@ export default function ProfilePage() {
                 onClick={() => setEditingCertification("new")}
               >
                 <Plus className="mr-1 size-3.5" />
-                Add
+                {t("prof.add")}
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -816,7 +853,7 @@ export default function ProfilePage() {
               {(profileBundle?.certifications ?? []).length === 0 &&
                 editingCertification !== "new" && (
                   <p className="py-4 text-center text-sm text-muted-foreground">
-                    No certifications added yet.
+                    {t("prof.noCertYet")}
                   </p>
                 )}
 
@@ -878,7 +915,7 @@ export default function ProfilePage() {
             <Card className="warm-shadow">
               <CardHeader>
                 <CardTitle className="font-(family-name:--font-bricolage) text-lg tracking-tight">
-                  Skills
+                  {t("prof.skills")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -897,42 +934,100 @@ export default function ProfilePage() {
             </Card>
           )}
 
+          <Card className="warm-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 font-(family-name:--font-bricolage) text-lg tracking-tight">
+                <Sparkles className="size-4 text-jade" />
+                {t("skillGap.title")}
+              </CardTitle>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("skillGap.description")}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {skillGapData.length > 0 ? (
+                skillGapData.map((item) => (
+                  <div key={item.label} className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {Math.max(0, Math.round(item.market - item.have))}% gap
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">{t("skillGap.yourSkill")}</span>
+                        <span className="font-medium">{Math.round(item.have)}%</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className="h-full bg-jade"
+                          style={{ width: `${item.have}%` }}
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">{t("skillGap.marketNeed")}</span>
+                        <span className="font-medium">{Math.round(item.market)}%</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className="h-full bg-terracotta"
+                          style={{ width: `${item.market}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t("prof.addSkillsToSee")}
+                </p>
+              )}
+
+              <div className="rounded-xl bg-secondary/30 p-3 text-xs text-muted-foreground">
+                {t("skillGap.tip")}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Quick stats */}
           <Card className="warm-shadow">
             <CardHeader>
               <CardTitle className="font-(family-name:--font-bricolage) text-lg tracking-tight">
-                At a glance
+                {t("prof.atAGlance")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Experience</span>
+                <span className="text-muted-foreground">{t("prof.experience")}</span>
                 <span className="font-medium">
                   {profile?.yearsExperience != null
-                    ? `${profile.yearsExperience} years`
+                    ? `${profile.yearsExperience} ${t("prof.years")}`
                     : "—"}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Roles listed</span>
+                <span className="text-muted-foreground">{t("prof.rolesListed")}</span>
                 <span className="font-medium">
                   {profileBundle?.experiences?.length ?? 0}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Education</span>
+                <span className="text-muted-foreground">{t("prof.education")}</span>
                 <span className="font-medium">
                   {profileBundle?.education?.length ?? 0}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Certifications</span>
+                <span className="text-muted-foreground">{t("prof.certifications")}</span>
                 <span className="font-medium">
                   {profileBundle?.certifications?.length ?? 0}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Files</span>
+                <span className="text-muted-foreground">{t("prof.files")}</span>
                 <span className="font-medium">
                   {profileBundle?.resumes?.length ?? 0}
                 </span>
@@ -944,11 +1039,10 @@ export default function ProfilePage() {
           <Card id="resume" className="warm-shadow">
             <CardHeader>
               <CardTitle className="font-(family-name:--font-bricolage) text-lg tracking-tight">
-                Resume &amp; Resources
+                {t("prof.resumeResources")}
               </CardTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Upload your resume, portfolio, or any files to share with
-                recruiters. Max 10 MB per file, up to 10 files.
+                {t("prof.resumeDesc")}
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -976,7 +1070,7 @@ export default function ProfilePage() {
 
               {(profileBundle?.resumes ?? []).length === 0 && (
                 <p className="py-1 text-center text-xs text-muted-foreground">
-                  No files uploaded yet.
+                  {t("prof.noFilesYet")}
                 </p>
               )}
 
@@ -1067,6 +1161,7 @@ function ExperienceCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="group relative rounded-xl border border-border bg-secondary/20 p-4 transition-colors hover:bg-secondary/40">
       <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -1085,7 +1180,7 @@ function ExperienceCard({
           <p className="font-semibold">{title}</p>
           <p className="text-sm text-muted-foreground">{company}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {startDate} — {isCurrent ? "Present" : (endDate ?? "")}
+            {startDate} — {isCurrent ? t("prof.present") : (endDate ?? "")}
             {location && ` · ${location}`}
           </p>
           {description && (
@@ -1106,6 +1201,7 @@ function ExperienceForm({
   onSave: (v: ExperienceFormValues) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { t } = useLanguage();
   const [values, setValues] = useState<ExperienceFormValues>(
     initial ?? {
       title: "",
@@ -1124,25 +1220,25 @@ function ExperienceForm({
   return (
     <div className="@container space-y-3 rounded-xl border border-jade/30 bg-jade/5 p-4">
       <div className="grid gap-3 @xs:grid-cols-2">
-        <Input placeholder="Job title *" value={values.title} onChange={(e) => set("title", e.target.value)} />
-        <Input placeholder="Company *" value={values.company} onChange={(e) => set("company", e.target.value)} />
+        <Input placeholder={t("prof.jobTitlePh")} value={values.title} onChange={(e) => set("title", e.target.value)} />
+        <Input placeholder={t("prof.companyPh")} value={values.company} onChange={(e) => set("company", e.target.value)} />
       </div>
-      <Input placeholder="Location" value={values.location} onChange={(e) => set("location", e.target.value)} />
+      <Input placeholder={t("prof.location")} value={values.location} onChange={(e) => set("location", e.target.value)} />
       <div className="grid gap-3 @xs:grid-cols-2">
-        <Input placeholder="Start date (e.g. Jan 2022)" value={values.startDate} onChange={(e) => set("startDate", e.target.value)} />
-        <Input placeholder="End date (or leave blank)" value={values.endDate} onChange={(e) => set("endDate", e.target.value)} disabled={values.isCurrent} />
+        <Input placeholder={t("prof.startDatePh")} value={values.startDate} onChange={(e) => set("startDate", e.target.value)} />
+        <Input placeholder={t("prof.endDatePh")} value={values.endDate} onChange={(e) => set("endDate", e.target.value)} disabled={values.isCurrent} />
       </div>
       <label className="flex items-center gap-2 text-sm">
         <Checkbox checked={values.isCurrent} onCheckedChange={(c) => { set("isCurrent", !!c); if (c) set("endDate", ""); }} />
-        I currently work here
+        {t("prof.iCurrentlyWork")}
       </label>
-      <Textarea placeholder="Description (optional)" rows={3} value={values.description} onChange={(e) => set("description", e.target.value)} />
+      <Textarea placeholder={t("prof.descOptional")} rows={3} value={values.description} onChange={(e) => set("description", e.target.value)} />
       <div className="flex gap-2">
         <Button size="sm" className="rounded-full bg-jade text-white hover:bg-jade/90" disabled={!values.title || !values.company || !values.startDate || saving} onClick={async () => { setSaving(true); await onSave(values); setSaving(false); }}>
-          {saving ? "Saving..." : "Save"}
+          {saving ? t("prof.saving") : t("prof.save")}
         </Button>
         <Button size="sm" variant="ghost" className="rounded-full" onClick={onCancel}>
-          <X className="mr-1 size-3.5" /> Cancel
+          <X className="mr-1 size-3.5" /> {t("prof.cancel")}
         </Button>
       </div>
     </div>
@@ -1212,6 +1308,7 @@ function EducationForm({
   onSave: (v: EducationFormValues) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { t } = useLanguage();
   const [values, setValues] = useState<EducationFormValues>(
     initial ?? { school: "", degree: "", fieldOfStudy: "", startDate: "", endDate: "", description: "" },
   );
@@ -1221,22 +1318,22 @@ function EducationForm({
 
   return (
     <div className="@container space-y-3 rounded-xl border border-jade/30 bg-jade/5 p-4">
-      <Input placeholder="School *" value={values.school} onChange={(e) => set("school", e.target.value)} />
+      <Input placeholder={t("prof.schoolPh")} value={values.school} onChange={(e) => set("school", e.target.value)} />
       <div className="grid gap-3 @xs:grid-cols-2">
-        <Input placeholder="Degree (e.g. Bachelor's)" value={values.degree} onChange={(e) => set("degree", e.target.value)} />
-        <Input placeholder="Field of study" value={values.fieldOfStudy} onChange={(e) => set("fieldOfStudy", e.target.value)} />
+        <Input placeholder={t("prof.degreePh")} value={values.degree} onChange={(e) => set("degree", e.target.value)} />
+        <Input placeholder={t("prof.fieldOfStudyPh")} value={values.fieldOfStudy} onChange={(e) => set("fieldOfStudy", e.target.value)} />
       </div>
       <div className="grid gap-3 @xs:grid-cols-2">
-        <Input placeholder="Start year" value={values.startDate} onChange={(e) => set("startDate", e.target.value)} />
-        <Input placeholder="End year" value={values.endDate} onChange={(e) => set("endDate", e.target.value)} />
+        <Input placeholder={t("prof.startYearPh")} value={values.startDate} onChange={(e) => set("startDate", e.target.value)} />
+        <Input placeholder={t("prof.endYearPh")} value={values.endDate} onChange={(e) => set("endDate", e.target.value)} />
       </div>
-      <Textarea placeholder="Activities, honors, description (optional)" rows={2} value={values.description} onChange={(e) => set("description", e.target.value)} />
+      <Textarea placeholder={t("prof.eduDescPh")} rows={2} value={values.description} onChange={(e) => set("description", e.target.value)} />
       <div className="flex gap-2">
         <Button size="sm" className="rounded-full bg-jade text-white hover:bg-jade/90" disabled={!values.school || saving} onClick={async () => { setSaving(true); await onSave(values); setSaving(false); }}>
-          {saving ? "Saving..." : "Save"}
+          {saving ? t("prof.saving") : t("prof.save")}
         </Button>
         <Button size="sm" variant="ghost" className="rounded-full" onClick={onCancel}>
-          <X className="mr-1 size-3.5" /> Cancel
+          <X className="mr-1 size-3.5" /> {t("prof.cancel")}
         </Button>
       </div>
     </div>
@@ -1260,6 +1357,7 @@ function CertificationCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="group relative rounded-xl border border-border bg-secondary/20 p-4 transition-colors hover:bg-secondary/40">
       <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -1279,8 +1377,8 @@ function CertificationCard({
           <p className="text-sm text-muted-foreground">{issuingOrg}</p>
           {(issueDate || expirationDate) && (
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {issueDate && `Issued ${issueDate}`}
-              {expirationDate && ` · Expires ${expirationDate}`}
+              {issueDate && `${t("prof.issued")} ${issueDate}`}
+              {expirationDate && ` · ${t("prof.expires")} ${expirationDate}`}
             </p>
           )}
           {credentialUrl && (
@@ -1291,7 +1389,7 @@ function CertificationCard({
               className="mt-1 inline-flex items-center gap-1 text-xs text-jade hover:underline"
             >
               <ExternalLink className="size-3" />
-              View credential
+              {t("prof.viewCredential")}
             </a>
           )}
         </div>
@@ -1309,6 +1407,7 @@ function CertificationForm({
   onSave: (v: CertificationFormValues) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { t } = useLanguage();
   const [values, setValues] = useState<CertificationFormValues>(
     initial ?? { name: "", issuingOrg: "", issueDate: "", expirationDate: "", credentialUrl: "" },
   );
@@ -1318,19 +1417,19 @@ function CertificationForm({
 
   return (
     <div className="@container space-y-3 rounded-xl border border-amber-accent/30 bg-amber-accent/5 p-4">
-      <Input placeholder="Certification name *" value={values.name} onChange={(e) => set("name", e.target.value)} />
-      <Input placeholder="Issuing organization *" value={values.issuingOrg} onChange={(e) => set("issuingOrg", e.target.value)} />
+      <Input placeholder={t("prof.certNamePh")} value={values.name} onChange={(e) => set("name", e.target.value)} />
+      <Input placeholder={t("prof.issuingOrgPh")} value={values.issuingOrg} onChange={(e) => set("issuingOrg", e.target.value)} />
       <div className="grid gap-3 @xs:grid-cols-2">
-        <Input placeholder="Issue date" value={values.issueDate} onChange={(e) => set("issueDate", e.target.value)} />
-        <Input placeholder="Expiration date" value={values.expirationDate} onChange={(e) => set("expirationDate", e.target.value)} />
+        <Input placeholder={t("prof.issueDatePh")} value={values.issueDate} onChange={(e) => set("issueDate", e.target.value)} />
+        <Input placeholder={t("prof.expirationDatePh")} value={values.expirationDate} onChange={(e) => set("expirationDate", e.target.value)} />
       </div>
-      <Input placeholder="Credential URL (optional)" value={values.credentialUrl} onChange={(e) => set("credentialUrl", e.target.value)} />
+      <Input placeholder={t("prof.credentialUrlPh")} value={values.credentialUrl} onChange={(e) => set("credentialUrl", e.target.value)} />
       <div className="flex gap-2">
         <Button size="sm" className="rounded-full bg-amber-accent text-white hover:bg-amber-accent/90" disabled={!values.name || !values.issuingOrg || saving} onClick={async () => { setSaving(true); await onSave(values); setSaving(false); }}>
-          {saving ? "Saving..." : "Save"}
+          {saving ? t("prof.saving") : t("prof.save")}
         </Button>
         <Button size="sm" variant="ghost" className="rounded-full" onClick={onCancel}>
-          <X className="mr-1 size-3.5" /> Cancel
+          <X className="mr-1 size-3.5" /> {t("prof.cancel")}
         </Button>
       </div>
     </div>
@@ -1350,6 +1449,7 @@ function FileDropZone({
   onUpload: (file: File) => Promise<void>;
   disabled?: boolean;
 }) {
+  const { t } = useLanguage();
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1357,7 +1457,7 @@ function FileDropZone({
   const handleFile = async (file: File) => {
     setError(null);
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setError("File exceeds the 10 MB limit.");
+      setError(t("prof.fileTooLarge"));
       return;
     }
     setUploading(true);
@@ -1395,7 +1495,7 @@ function FileDropZone({
       {uploading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="size-4 animate-spin rounded-full border-2 border-jade border-t-transparent" />
-          Uploading...
+          {t("prof.uploading")}
         </div>
       ) : (
         <>
@@ -1403,10 +1503,10 @@ function FileDropZone({
             <Plus className="size-5" />
           </div>
           <p className="text-sm font-medium">
-            {disabled ? "File limit reached" : "Drop a file here or click to browse"}
+            {disabled ? t("prof.fileLimitReached") : t("prof.dropOrBrowse")}
           </p>
           <p className="text-xs text-muted-foreground">
-            PDF, DOC, images, or any file up to 10 MB
+            {t("prof.fileTypes")}
           </p>
           {!disabled && (
             <input

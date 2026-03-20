@@ -8,7 +8,7 @@ import { getErrorMessage } from "@/lib/convex-error";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -32,6 +32,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { RichTextDisplay } from "@/components/rich-text-display";
+import { useLanguage } from "@/components/i18n/language-context";
 
 type CompanyStatus =
   | "submitted"
@@ -67,6 +68,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 
 export default function CompanyApplicationsPage() {
   const { orgId, has } = useAuth();
+  const { t } = useLanguage();
   const [statusFilter, setStatusFilter] = useState<CompanyStatus | "all">(
     "all",
   );
@@ -138,7 +140,7 @@ export default function CompanyApplicationsPage() {
     return (
       <Card className="warm-shadow">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Select an organization to continue.
+          {t("companyJobs.selectOrg")}
         </CardContent>
       </Card>
     );
@@ -162,7 +164,7 @@ export default function CompanyApplicationsPage() {
     return (
       <Card className="warm-shadow">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          Your organization data is still syncing. Refresh in a few seconds.
+          {t("companyJobs.syncing")}
         </CardContent>
       </Card>
     );
@@ -179,10 +181,10 @@ export default function CompanyApplicationsPage() {
       <div className="space-y-4">
         <div>
           <h1 className="font-(family-name:--font-bricolage) text-2xl font-bold tracking-tight text-foreground">
-            Applications
+            {t("companyApps.title")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Review candidate profiles and make hiring decisions.
+            {t("companyApps.subtitle")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -195,21 +197,21 @@ export default function CompanyApplicationsPage() {
                 setStatusFilter(e.target.value as CompanyStatus | "all")
               }
             >
-              <option value="all">All statuses ({applications.length})</option>
+              <option value="all">{t("companyApps.allStatuses")} ({applications.length})</option>
               <option value="submitted">
-                Submitted ({statusCounts["submitted"] ?? 0})
+                {t("companyApps.submitted")} ({statusCounts["submitted"] ?? 0})
               </option>
               <option value="in_review">
-                In review ({statusCounts["in_review"] ?? 0})
+                {t("companyApps.inReview")} ({statusCounts["in_review"] ?? 0})
               </option>
               <option value="accepted">
-                Accepted ({statusCounts["accepted"] ?? 0})
+                {t("companyApps.accepted")} ({statusCounts["accepted"] ?? 0})
               </option>
               <option value="rejected">
-                Rejected ({statusCounts["rejected"] ?? 0})
+                {t("companyApps.rejected")} ({statusCounts["rejected"] ?? 0})
               </option>
               <option value="withdrawn">
-                Withdrawn ({statusCounts["withdrawn"] ?? 0})
+                {t("companyApps.withdrawn")} ({statusCounts["withdrawn"] ?? 0})
               </option>
             </select>
             <ChevronDown className="absolute right-2.5 size-4 text-muted-foreground pointer-events-none" />
@@ -219,7 +221,7 @@ export default function CompanyApplicationsPage() {
             <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border/80 bg-muted/30 p-3">
               <div className="space-y-1">
                 <Label htmlFor="skills-filter" className="text-xs font-medium text-muted-foreground">
-                  Skills (comma-separated)
+                  {t("companyApps.skillsFilter")}
                 </Label>
                 <Input
                   id="skills-filter"
@@ -232,7 +234,7 @@ export default function CompanyApplicationsPage() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="min-years" className="text-xs font-medium text-muted-foreground">
-                  Min years
+                  {t("companyApps.minYears")}
                 </Label>
                 <Input
                   id="min-years"
@@ -246,7 +248,7 @@ export default function CompanyApplicationsPage() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="max-years" className="text-xs font-medium text-muted-foreground">
-                  Max years
+                  {t("companyApps.maxYears")}
                 </Label>
                 <Input
                   id="max-years"
@@ -270,7 +272,7 @@ export default function CompanyApplicationsPage() {
                     setMaxYearsExperience("");
                   }}
                 >
-                  Clear filters
+                  {t("companyApps.clearFilters")}
                 </Button>
               )}
             </div>
@@ -291,15 +293,15 @@ export default function CompanyApplicationsPage() {
             </div>
             <div className="space-y-1">
               <p className="font-(family-name:--font-bricolage) font-semibold text-foreground">
-                No applications found
+                {t("companyApps.noFound")}
               </p>
               <p className="max-w-sm text-sm text-muted-foreground">
                 {statusFilter === "all" &&
                 !skillsFilter.trim() &&
                 minYearsExperience === "" &&
                 maxYearsExperience === ""
-                  ? "Applications will appear here once candidates apply to your jobs."
-                  : "No applications match your filters. Try adjusting them."}
+                  ? t("companyApps.willAppear")
+                  : t("companyApps.noMatch")}
               </p>
             </div>
           </CardContent>
@@ -364,9 +366,9 @@ export default function CompanyApplicationsPage() {
                         "—"}
                     </p>
                     <p className="line-clamp-1 text-xs text-muted-foreground/90">
-                      Applied for{" "}
+                      {t("companyApps.appliedFor")}{" "}
                       <span className="font-medium text-foreground/80">
-                        {application.job?.title ?? "Unknown job"}
+                        {application.job?.title ?? t("companyApps.unknownJob")}
                       </span>
                       {" · "}
                       {new Date(application.createdAt).toLocaleDateString(
@@ -425,8 +427,8 @@ export default function CompanyApplicationsPage() {
                           <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground/80">
                             <User className="size-3.5" />
                             {application.profile?.summary
-                              ? "Summary"
-                              : "Cover Letter"}
+                              ? t("companyApps.summary")
+                              : t("companyApps.coverLetter")}
                           </h3>
                           <p className="text-sm leading-relaxed text-foreground/70">
                             {application.profile?.summary ??
@@ -436,7 +438,7 @@ export default function CompanyApplicationsPage() {
                             application.coverLetter && (
                               <div className="mt-3">
                                 <h4 className="mb-1 text-xs font-semibold text-muted-foreground uppercase">
-                                  Cover Letter
+                                  {t("companyApps.coverLetter")}
                                 </h4>
                                 <p className="text-sm leading-relaxed text-foreground/70">
                                   {application.coverLetter}
@@ -451,7 +453,7 @@ export default function CompanyApplicationsPage() {
                         <div>
                           <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground/80">
                             <Briefcase className="size-3.5 text-terracotta" />
-                            Experience
+                            {t("companyApps.experience")}
                           </h3>
                           <div className="space-y-3">
                             {application.experiences?.map((exp) => (
@@ -494,7 +496,7 @@ export default function CompanyApplicationsPage() {
                         <div>
                           <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground/80">
                             <GraduationCap className="size-3.5 text-jade" />
-                            Education
+                            {t("companyApps.education")}
                           </h3>
                           <div className="space-y-3">
                             {application.education?.map((edu) => (
@@ -535,7 +537,7 @@ export default function CompanyApplicationsPage() {
                         <div>
                           <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground/80">
                             <Award className="size-3.5 text-amber-accent" />
-                            Certifications
+                            {t("companyApps.certifications")}
                           </h3>
                           <div className="space-y-2">
                             {application.certifications?.map((cert) => (
@@ -576,8 +578,7 @@ export default function CompanyApplicationsPage() {
                       {/* No profile data at all */}
                       {!hasProfile && !application.coverLetter && (
                         <p className="py-4 text-center text-sm italic text-muted-foreground">
-                          This applicant hasn&apos;t completed their profile
-                          yet.
+                          {t("companyApps.noProfile")}
                         </p>
                       )}
                     </div>
@@ -588,7 +589,7 @@ export default function CompanyApplicationsPage() {
                       {(application.profile?.skills?.length ?? 0) > 0 && (
                         <div>
                           <h4 className="mb-2 text-xs font-semibold text-muted-foreground uppercase">
-                            Skills
+                            {t("companyApps.skills")}
                           </h4>
                           <div className="flex flex-wrap gap-1.5">
                             {application.profile!.skills.map((skill) => (
@@ -607,7 +608,7 @@ export default function CompanyApplicationsPage() {
                       {/* Contact & Links */}
                       <div>
                         <h4 className="mb-2 text-xs font-semibold text-muted-foreground uppercase">
-                          Contact & Links
+                          {t("companyApps.contactLinks")}
                         </h4>
                         <div className="space-y-1.5 text-sm">
                           {application.applicant?.email && (
@@ -670,7 +671,7 @@ export default function CompanyApplicationsPage() {
                       {(application.resumes?.length ?? 0) > 0 && (
                         <div>
                           <h4 className="mb-2 text-xs font-semibold text-muted-foreground uppercase">
-                            Resume &amp; Resources
+                            {t("companyApps.resumeResources")}
                           </h4>
                           <div className="space-y-2">
                             {application.resumes?.map((file) => (
@@ -706,7 +707,7 @@ export default function CompanyApplicationsPage() {
                       {application.profile?.yearsExperience != null && (
                         <div className="rounded-lg border border-border bg-card p-3">
                           <p className="text-xs text-muted-foreground">
-                            Years of experience
+                            {t("companyApps.yearsExp")}
                           </p>
                           <p className="text-lg font-bold">
                             {application.profile.yearsExperience}
@@ -718,7 +719,7 @@ export default function CompanyApplicationsPage() {
                       {canDecide && application.status !== "withdrawn" && (
                         <div className="space-y-2 border-t border-border pt-4">
                           <h4 className="text-xs font-semibold text-muted-foreground uppercase">
-                            Actions
+                            {t("companyApps.actions")}
                           </h4>
                           <div className="flex flex-col gap-2">
                             <Button
@@ -735,7 +736,7 @@ export default function CompanyApplicationsPage() {
                               }}
                             >
                               <Clock className="mr-2 size-3.5" />
-                              Move to review
+                              {t("companyApps.moveToReview")}
                             </Button>
                             <Button
                               size="sm"
@@ -750,7 +751,7 @@ export default function CompanyApplicationsPage() {
                               }}
                             >
                               <CheckCircle2 className="mr-2 size-3.5" />
-                              Accept candidate
+                              {t("companyApps.acceptCandidate")}
                             </Button>
                             <Button
                               size="sm"
@@ -766,7 +767,7 @@ export default function CompanyApplicationsPage() {
                               }}
                             >
                               <XCircle className="mr-2 size-3.5" />
-                              Reject candidate
+                              {t("companyApps.rejectCandidate")}
                             </Button>
                           </div>
                         </div>
@@ -774,7 +775,7 @@ export default function CompanyApplicationsPage() {
 
                       {!canDecide && (
                         <p className="text-xs text-muted-foreground">
-                          Read-only access for your role.
+                          {t("companyJobs.readOnly")}
                         </p>
                       )}
                     </div>

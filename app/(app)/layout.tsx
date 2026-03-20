@@ -3,21 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { Bell, Briefcase, Heart, FileText, Pencil, Search } from "lucide-react";
+import { Bell, Briefcase, Heart, FileText, Pencil, Search, UserRound } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { SiteLogo } from "@/components/site-logo";
+import { useLanguage, type TranslationKey } from "@/components/i18n/language-context";
 
+// เมนู Navbar ฝั่งผู้เรียน — ลบลิงก์ "สำหรับผู้ให้โปรแกรมเรียน" แล้วเพิ่ม "โปรไฟล์" แทน
 const navItems = [
-  { href: "/jobs", label: "Jobs", icon: Search },
-  { href: "/applications", label: "Applications", icon: FileText },
-  { href: "/favorites", label: "Saved", icon: Heart },
+  { href: "/jobs", labelKey: "nav.skillPaths" as TranslationKey, icon: Search },
+  { href: "/applications", labelKey: "nav.learningProgress" as TranslationKey, icon: FileText },
+  { href: "/profile", labelKey: "nav.profile" as TranslationKey, icon: UserRound },
+  { href: "/favorites", labelKey: "nav.saved" as TranslationKey, icon: Heart },
 ];
 
+// เมนู Mobile Navbar — เพิ่ม "โปรไฟล์" เข้ามาด้วย
 const mobileNavItems = [
-  { href: "/jobs", label: "Jobs", icon: Search },
-  { href: "/applications", label: "Applications", icon: FileText },
-  { href: "/notifications", label: "Alerts", icon: Bell },
-  { href: "/favorites", label: "Saved", icon: Heart },
+  { href: "/jobs", labelKey: "nav.skillPaths" as TranslationKey, icon: Search },
+  { href: "/applications", labelKey: "nav.learningProgress" as TranslationKey, icon: FileText },
+  { href: "/profile", labelKey: "nav.profile" as TranslationKey, icon: UserRound },
+  { href: "/notifications", labelKey: "nav.alerts" as TranslationKey, icon: Bell },
+  { href: "/favorites", labelKey: "nav.saved" as TranslationKey, icon: Heart },
 ];
 
 export default function CandidateLayout({
@@ -26,6 +31,7 @@ export default function CandidateLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const { lang, setLang, t } = useLanguage();
 
   return (
     <main className="min-h-screen bg-background pb-16 md:pb-0">
@@ -49,7 +55,7 @@ export default function CandidateLayout({
                   }`}
                 >
                   <Icon className="size-3.5" />
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               );
             })}
@@ -72,27 +78,40 @@ export default function CandidateLayout({
                     }`}
                   >
                     <Icon className="size-3.5" />
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 );
               })}
             </div>
+
+            {/* ปุ่มสลับภาษาแบบมินิมอล (TH / EN) */}
+            <button
+              type="button"
+              onClick={() => setLang(lang === "th" ? "en" : "th")}
+              className="hidden items-center rounded-full border border-border/40 bg-secondary/30 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground md:inline-flex"
+              aria-label="Toggle language"
+            >
+              {lang === "th" ? "TH" : "EN"}
+              <span className="mx-1 text-border">|</span>
+              <span className="text-muted-foreground/50">{lang === "th" ? "EN" : "TH"}</span>
+            </button>
+
             <NotificationBell />
             <div className="ml-2">
               <UserButton>
                 <UserButton.MenuItems>
                   <UserButton.Link
-                    label="Edit my Profile"
+                    label={t("profile.editMyProfile")}
                     labelIcon={<Pencil className="size-4" />}
                     href="/profile"
                   />
                   <UserButton.Link
-                    label="Experience"
+                    label={t("profile.experience")}
                     labelIcon={<Briefcase className="size-4" />}
                     href="/profile#experience"
                   />
                   <UserButton.Link
-                    label="Resume"
+                    label={t("profile.resume")}
                     labelIcon={<FileText className="size-4" />}
                     href="/profile#resume"
                   />
@@ -126,7 +145,7 @@ export default function CandidateLayout({
                 }`}
               >
                 <Icon className="size-5" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}

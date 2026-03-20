@@ -92,7 +92,7 @@ export default function EditCompanyJobPage() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Company workspace unavailable</CardTitle>
+          <CardTitle>Learning Provider workspace unavailable</CardTitle>
           <CardDescription>
             Your organization has not synced yet. Wait a few seconds and refresh.
           </CardDescription>
@@ -121,7 +121,7 @@ export default function EditCompanyJobPage() {
         <CardHeader>
           <CardTitle>Read-only access</CardTitle>
           <CardDescription>
-            Only admins and recruiters can edit job listings.
+            Only admins and coordinators can edit learning listings.
           </CardDescription>
         </CardHeader>
       </Card>

@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextDisplay } from "@/components/rich-text-display";
+import { useLanguage } from "@/components/i18n/language-context";
 import {
   ArrowLeft,
   Bookmark,
@@ -22,6 +23,7 @@ import {
   ChevronDown,
   ChevronUp,
   GraduationCap,
+  Lightbulb,
   MapPin,
   Pencil,
   Send,
@@ -36,6 +38,7 @@ function formatSalary(min?: number, max?: number, currency?: string) {
 }
 
 export default function JobDetailPage() {
+  const { t } = useLanguage();
   const params = useParams<{ jobId: string }>();
   const jobId = params.jobId as Id<"jobListings">;
   const [coverLetter, setCoverLetter] = useState("");
@@ -87,14 +90,14 @@ export default function JobDetailPage() {
     return (
       <Card className="warm-shadow">
         <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
-          <p className="font-medium">This job is no longer available</p>
+          <p className="font-medium">{t("detail.notAvailable")}</p>
           <p className="text-sm text-muted-foreground">
-            It may have been closed or removed by the employer.
+            {t("detail.notAvailableDesc")}
           </p>
           <Button asChild variant="outline" className="rounded-full">
             <Link href="/jobs">
               <ArrowLeft className="mr-1.5 size-3.5" />
-              Back to jobs
+              {t("detail.allPaths")}
             </Link>
           </Button>
         </CardContent>
@@ -105,12 +108,13 @@ export default function JobDetailPage() {
   return (
     <section className="animate-fade-in space-y-6">
       {/* Back link */}
+      {/* ลิงก์กลับหน้ารวมเส้นทางการเรียนรู้ */}
       <Link
         href="/jobs"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" />
-        Back to all jobs
+        {t("detail.backToAll")}
       </Link>
 
       <div className="@container">
@@ -156,11 +160,34 @@ export default function JobDetailPage() {
               </div>
             )}
 
+            {/* Mockup Section: ทักษะที่คุณจะได้เรียนรู้ (Skills You Will Learn) */}
+            <div className="rounded-xl border border-dashed border-jade/40 bg-jade/5 p-5">
+              <h3 className="flex items-center gap-2 font-(family-name:--font-bricolage) text-base font-semibold tracking-tight text-jade">
+                <Lightbulb className="size-4" />
+                {t("detail.skillsYouWillLearn")}
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t("detail.skillsComingSoon")}
+              </p>
+              {/* placeholder สำหรับแสดงรายการทักษะจริงในอนาคต */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {["Critical Thinking", "Data Analysis", "Communication", "Problem Solving", "Digital Literacy", "Adaptability"].map((skill) => (
+                  <span
+                    key={skill}
+                    className="rounded-lg bg-jade/10 px-3 py-1.5 text-center text-xs font-medium text-jade/80"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+
             <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
+              {/* ปุ่มกลับหน้ารวมเส้นทาง */}
               <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link href="/jobs">
                   <ArrowLeft className="mr-1 size-3" />
-                  All jobs
+                  {t("detail.allPaths")}
                 </Link>
               </Button>
               <Button
@@ -182,12 +209,12 @@ export default function JobDetailPage() {
                 {isFavorited ? (
                   <>
                     <BookmarkCheck className="mr-1 size-3.5" />
-                    Saved
+                    {t("detail.saved")}
                   </>
                 ) : (
                   <>
                     <Bookmark className="mr-1 size-3.5" />
-                    Save this job
+                    {t("detail.savePath")}
                   </>
                 )}
               </Button>
@@ -199,10 +226,10 @@ export default function JobDetailPage() {
         <Card className="warm-shadow h-fit @4xl:sticky @4xl:top-28">
           <CardHeader>
             <CardTitle className="font-(family-name:--font-bricolage) text-xl tracking-tight">
-              Apply now
+              {t("action.startLearning")}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Submit your application directly — it only takes a minute.
+              {t("detail.startLearningDesc")}
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -210,13 +237,13 @@ export default function JobDetailPage() {
               <div className="rounded-xl border border-amber-accent/40 bg-amber-accent/10 p-4">
                 <p className="flex items-center gap-2 text-sm font-medium text-amber-accent">
                   <UserCircle className="size-4 shrink-0" />
-                  Complete your profile to apply
+                  {t("action.completeProfileToStartLearning")}
                 </p>
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  Add your name and basic info so employers can see who applied.
+                  {t("detail.addNameInfo")}
                 </p>
                 <Button asChild variant="outline" size="sm" className="mt-3 rounded-full">
-                  <Link href="/profile">Complete profile</Link>
+                  <Link href="/profile">{t("action.completeProfile")}</Link>
                 </Button>
               </div>
             )}
@@ -230,10 +257,10 @@ export default function JobDetailPage() {
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">
-                      Your profile will be shared
+                      {t("detail.profileShared")}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      Employers will see the following
+                      {t("action.learningProvidersWillSeeFollowing")}
                     </p>
                   </div>
                   {profileInfoOpen ? (
@@ -319,7 +346,7 @@ export default function JobDetailPage() {
                         className="inline-flex items-center gap-1 text-xs font-medium text-jade hover:underline"
                       >
                         <Pencil className="size-3" />
-                        Edit profile
+                        {t("action.editProfile")}
                       </Link>
                     </div>
                   </div>
@@ -328,17 +355,18 @@ export default function JobDetailPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="coverLetter">Cover letter</Label>
+              {/* ช่องบันทึกถึงผู้สอน */}
+              <Label htmlFor="coverLetter">{t("detail.coverLetter")}</Label>
               <Textarea
                 id="coverLetter"
                 rows={8}
-                placeholder="Tell them why you're a great fit for this role..."
+                placeholder={t("detail.coverLetterPlaceholder")}
                 value={coverLetter}
                 onChange={(event) => setCoverLetter(event.target.value)}
                 className="resize-none"
               />
               <p className="text-xs text-muted-foreground">
-                Optional, but a short note can make a difference.
+                {t("detail.coverLetterHint")}
               </p>
             </div>
             <Button
@@ -352,17 +380,17 @@ export default function JobDetailPage() {
                     jobId,
                     coverLetter: coverLetter.trim() || undefined,
                   });
-                  setStatusText("Application submitted successfully!");
+                  setStatusText(t("action.learningStartedSuccess"));
                   setCoverLetter("");
                 } catch (error) {
-                  setStatusText(getErrorMessage(error, "Could not submit application."));
+                  setStatusText(getErrorMessage(error, t("action.couldNotStartLearning")));
                 } finally {
                   setIsSubmitting(false);
                 }
               }}
             >
               <Send className="mr-1.5 size-4" />
-              {isSubmitting ? "Submitting..." : "Submit application"}
+              {isSubmitting ? t("action.startLearningStarting") : t("action.startLearning")}
             </Button>
             {statusText && (
               <p className={`text-xs ${statusText.includes("success") ? "text-jade" : "text-muted-foreground"}`}>
